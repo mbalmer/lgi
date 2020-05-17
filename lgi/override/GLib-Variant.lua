@@ -122,7 +122,7 @@ function variant_new(format, pos, val)
    elseif t == 'a' then
       if format:sub(pos, pos) == 'y' then
 	 -- Bytestring is just simple Lua string.
-	 return Variant.new_bytestring(val), pos + 1
+	 return Variant.new_from_data(VariantType.BYTESTRING, val), pos + 1
       end
       local epos = read_format(format, pos)
       if not epos then return nil end
@@ -208,7 +208,7 @@ local function variant_get(v)
       end
       return array
    elseif Variant.is_of_type(v, VariantType.BYTESTRING) then
-      return tostring(Variant.get_bytestring(v))
+      return tostring(v.data)
    elseif Variant.is_of_type(v, VariantType.DICTIONARY) then
       -- Return proxy table which dynamically looks up items in the
       -- target variant.
@@ -218,6 +218,18 @@ local function variant_get(v)
 	 function meta:__index(key)
 	    local found = Variant.lookup_value(v, key)
 	    return found and variant_get(found)
+	 end
+	 -- pairs support for lua 5.2+
+	 function meta:__pairs()
+	    local idx, max, var = 0, v:n_children()
+	    local function var_iter(tbl, k)
+	       if idx == max then
+		  return nil,nil
+	       end
+	       var, idx = v:get_child_value(idx), idx+1
+	       return var and var.value[1], variant_get(var.value[2])
+	    end
+	    return var_iter, self, nil
 	 end
       else
 	 -- Custom search, walk key-by-key.  Cache key positions in

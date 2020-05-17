@@ -9,7 +9,7 @@
 ------------------------------------------------------------------------------
 
 local select, type, pairs, ipairs, unpack, setmetatable, error, next, rawget
-   = select, type, pairs, ipairs, unpack, setmetatable, error, next, rawget
+   = select, type, pairs, ipairs, unpack or table.unpack, setmetatable, error, next, rawget
 local lgi = require 'lgi'
 local core = require 'lgi.core'
 local Gtk = lgi.Gtk
@@ -21,7 +21,9 @@ local log = lgi.log.domain('lgi.Gtk')
 
 -- Initialize GTK.
 Gtk.disable_setlocale()
-assert(Gtk.init_check())
+if not Gtk.init_check() then
+    return "gtk_init_check() failed"
+end
 
 -- Gtk.Allocation is just an alias to Gdk.Rectangle.
 Gtk.Allocation = Gdk.Rectangle
@@ -310,7 +312,14 @@ function Gtk.TreeModel:_element(model, key, origin)
    elseif Gtk.TreePath:is_type_of(key) then
       return model:get_iter(key), '_iter'
    end
-   return tree_model_element(self, model, key, origin)
+   local natres = {tree_model_element(self, model, key, origin)}
+   if #natres > 0 then return unpack(natres) end
+   if model ~= nil and (type(key) == 'number' or type(key) == 'string') then
+      local path = Gtk.TreePath.new_from_string(key)
+      if path then
+         return model:get_iter(path), '_iter'
+      end
+   end
 end
 function Gtk.TreeModel:_access_iter(model, iter, ...)
    if select('#', ...) > 0 then

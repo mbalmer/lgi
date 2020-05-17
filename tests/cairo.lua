@@ -447,3 +447,52 @@ function cairo.context_transform()
    compare(x, 10)
    compare(y, 20)
 end
+
+function cairo.device_scale()
+   local cairo = lgi.cairo
+   if cairo.version >= cairo.version_encode(1, 14, 0) then
+      local surface = cairo.ImageSurface('ARGB32', 100, 100)
+
+      local x, y, z = surface:get_device_scale()
+      check(x == 1)
+      check(y == 1)
+      check(z == nil)
+
+      surface:set_device_scale(-1, 42)
+      local x, y, z = surface:get_device_scale()
+      check(x == -1)
+      check(y == 42)
+      check(z == nil)
+   end
+end
+
+function cairo.create_similar_image()
+   local cairo = lgi.cairo
+   if cairo.version >= cairo.version_encode(1, 12, 0) then
+      local surface = cairo.ImageSurface('ARGB32', 100, 100)
+      local similar = surface:create_similar_image('RGB24', 1, 2)
+      check(similar.type == "IMAGE")
+      check(similar.content == "COLOR")
+      check(similar.width == 1)
+      check(similar.height == 2)
+   end
+end
+
+function cairo.pattern_reference()
+   local cairo = lgi.cairo
+
+   local img = cairo.ImageSurface(cairo.Format.RGB24, 42, 42)
+   local img2 = cairo.ImageSurface(cairo.Format.RGB24, 42, 42)
+   local cr = cairo.Context(img)
+   cr:set_source_surface(img2, 0, 0)
+
+   -- cairo_get_source() returns a pointer *without* acquiring a reference to it.
+   local source = cr.source
+
+   -- Let's make "cr" drop its reference to 'source'.
+   cr:set_source_rgb(0.2, 0.4, 0.6)
+
+   -- Now the reference count is zero and we would have a
+   -- use-after-free if custom refsink would not work correctly.
+   cr.source = source
+end

@@ -20,17 +20,7 @@ local record = require 'lgi.record'
 local enum = require 'lgi.enum'
 local ti = ffi.types
 
-cairo._module = core.module('cairo', 2)
 local module_gobject = core.gi.cairo.resolve
-
--- Versioning support.
-function cairo.version_encode(major, minor, micro)
-   return 10000 * major + 100 * minor + micro
-end
-cairo.version = core.callable.new {
-   addr = cairo._module.cairo_version, ret = ti.int } ()
-cairo.version_string = core.callable.new {
-   addr = cairo._module.cairo_version_string, ret = ti.utf8 } ()
 
 -- Load some constants.
 cairo._constant = {
@@ -38,6 +28,10 @@ cairo._constant = {
    MIME_TYPE_JPEG = 'image/jpeg',
    MIME_TYPE_PNG = 'image/png',
    MIME_TYPE_URI = 'text/x-uri',
+   -- The following three were added in cairo 1.14
+   MIME_TYPE_JBIG2 = 'application/x-cairo.jbig2',
+   MIME_TYPE_JBIG2_GLOBAL = 'application/x-cairo.jbig2-global',
+   MIME_TYPE_JBIG2_GLOBAL_ID = 'application/x-cairo.jbig2-global-id',
 }
 
 -- Load definitions of all enums.
@@ -57,6 +51,18 @@ for _, name in pairs {
       cairo._enum[name] = component.create(nil, enum.enum_mt, 'cairo.' .. name)
    end
 end
+
+-- Load libcairo.so directly; this has to happen after the typelib was used
+cairo._module = core.module('cairo', 2)
+
+-- Versioning support.
+function cairo.version_encode(major, minor, micro)
+   return 10000 * major + 100 * minor + micro
+end
+cairo.version = core.callable.new {
+   addr = cairo._module.cairo_version, ret = ti.int } ()
+cairo.version_string = core.callable.new {
+   addr = cairo._module.cairo_version_string, ret = ti.utf8 } ()
 
 -- Load definitions of all boxed records.
 cairo._struct = cairo._struct or {}
@@ -456,6 +462,9 @@ for _, info in ipairs {
       methods = {
 	 create_similar = { ret = { cairo.Surface, xfer = true },
 			    cairo.Content, ti.int, ti.int },
+	 create_similar_image = { since = cairo.version_encode(1, 12, 0),
+			    ret = { cairo.Surface, xfer = true },
+			    cairo.Format, ti.int, ti.int },
 	 create_for_rectangle = { ret = { cairo.Surface, xfer = true },
 				  ti.double, ti.double, ti.double, ti.double },
 	 status = { ret = cairo.Status },
@@ -469,6 +478,11 @@ for _, info in ipairs {
 	 set_device_offset = { ti.double, ti.double },
 	 get_device_offset = { { ti.double, dir = 'out' },
 			       { ti.double, dir = 'out' } },
+	 set_device_scale = { since = cairo.version_encode(1, 14, 0),
+	     ti.double, ti.double },
+	 get_device_scale = { since = cairo.version_encode(1, 14, 0),
+			      { ti.double, dir = 'out' },
+			      { ti.double, dir = 'out' } },
 	 set_fallback_resolution = { ti.double, ti.double },
 	 get_fallback_resolution = { { ti.double, dir = 'out' },
 				     { ti.double, dir = 'out' } },
@@ -658,11 +672,14 @@ for _, info in ipairs {
       local name = info[1]
       local obj = assert(cairo[name], name)
       obj._parent = info.parent
+      local cprefix = 'cairo_' .. (info.cprefix or core.uncamel(name) .. '_')
+      if not obj._parent then
+	 obj._refsink = cairo._module[cprefix .. 'reference']
+      end
       if info.methods then
 	 -- Go through description of the methods and create functions
 	 -- from them.
 	 obj._method = {}
-	 local cprefix = 'cairo_' .. (info.cprefix or core.uncamel(name) .. '_')
 	 local self_arg = { obj }
 	 for method_name, method_info in pairs(info.methods) do
 	    if cairo.version >= (method_info.since or 0) then

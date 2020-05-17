@@ -60,7 +60,10 @@ const char *lgi_sd (lua_State *L)
 	  break;
 
 	case LUA_TNUMBER:
-	  item = g_strdup_printf ("%g", lua_tonumber (L, i));
+	  if (lua_isinteger(L, i))
+		item = g_strdup_printf (LGI_LUAINT_FORMAT, lua_tointeger (L, i));
+	  else
+		item = g_strdup_printf ("%g", lua_tonumber (L, i));
 	  break;
 
 	default:
@@ -213,7 +216,7 @@ lgi_type_get_gtype (lua_State *L, int narg)
       return G_TYPE_INVALID;
 
     case LUA_TNUMBER:
-      return lua_tonumber (L, narg);
+      return lua_tointeger (L, narg);
 
     case LUA_TLIGHTUSERDATA:
       return (GType) lua_touserdata (L, narg);
@@ -380,7 +383,14 @@ core_log (lua_State *L)
   const char *domain = luaL_checkstring (L, 1);
   int level = 1 << (luaL_checkoption (L, 2, log_levels[5], log_levels) + 2);
   const char *message = luaL_checkstring (L, 3);
+
+#if GLIB_CHECK_VERSION(2, 50, 0)
+  /* TODO: We can include more debug information such as lua line numbers */
+  g_log_structured (domain, level, "MESSAGE", "%s", message);
+#else
   g_log (domain, level, "%s", message);
+#endif
+
   return 0;
 }
 
@@ -454,16 +464,16 @@ core_registerlock (lua_State *L)
 static int
 core_band (lua_State *L)
 {
-  lua_pushnumber (L, (unsigned)luaL_checknumber (L, 1)
-		  & (unsigned)luaL_checknumber (L, 2));
+  lua_pushinteger (L, (lgi_Unsigned)luaL_checkinteger (L, 1)
+		  & (lgi_Unsigned)luaL_checkinteger (L, 2));
   return 1;
 }
 
 static int
 core_bor (lua_State *L)
 {
-  lua_pushnumber (L, (unsigned)luaL_checknumber (L, 1)
-		  | (unsigned)luaL_checknumber (L, 2));
+  lua_pushinteger (L, (lgi_Unsigned)luaL_checkinteger (L, 1)
+		  | (lgi_Unsigned)luaL_checkinteger (L, 2));
   return 1;
 }
 
@@ -474,6 +484,10 @@ module_gc (lua_State *L)
 {
   GModule **module = luaL_checkudata (L, 1, UD_MODULE);
   g_module_close (*module);
+
+  /* Unset the metatable / make the module unusable */
+  lua_pushnil (L);
+  lua_setmetatable (L, 1);
   return 0;
 }
 
