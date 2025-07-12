@@ -11,7 +11,7 @@ LUA_VERSION=5.1
 LUA_LIBDIR = $(PREFIX)/lib/lua/$(LUA_VERSION)
 LUA_SHAREDIR = $(PREFIX)/share/lua/$(LUA_VERSION)
 
-PKG_CONFIG = pkg-config
+PKG_CONFIG ?= pkg-config
 GINAME = gobject-introspection-1.0
 PKGS = $(GINAME) gmodule-2.0 libffi
 VERSION_FILE = version.lua
@@ -62,7 +62,7 @@ clean :
 	rm -f $(CORE) $(OBJS)
 
 %.o : %.c
-	$(CC) $(ALL_CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
 
 $(CORE) : $(OBJS)
 	$(CC) $(ALL_LDFLAGS) -o $@ $(OBJS) $(LIBS)

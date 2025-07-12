@@ -517,8 +517,13 @@ static const struct luaL_Reg module_reg[] = {
 #define MODULE_NAME_FORMAT_VERSION "cyg%s-%d.dll"
 #define MODULE_NAME_FORMAT_PLAIN "cyg%s.dll"
 #elif defined(G_OS_WIN32)
+#ifdef _MSC_VER
+#define MODULE_NAME_FORMAT_VERSION "%s-%d.dll"
+#define MODULE_NAME_FORMAT_PLAIN "%s.dll"
+#else
 #define MODULE_NAME_FORMAT_VERSION "lib%s-%d.dll"
 #define MODULE_NAME_FORMAT_PLAIN "lib%s.dll"
+#endif
 #elif defined(__APPLE__)
 #define MODULE_NAME_FORMAT_VERSION "lib%s.%d.dylib"
 #define MODULE_NAME_FORMAT_PLAIN "lib%s.dylib"
@@ -551,10 +556,15 @@ core_module (lua_State *L)
 			    luaL_checkstring (L, 1));
 
 #if defined(__APPLE__)
+/* GLib 2.76 improved g_module_open() on MacOS, see
+   https://gitlab.gnome.org/GNOME/glib/-/merge_requests/2950.  For
+   older GLib versions, use the previous workaround. */
+#if !GLIB_CHECK_VERSION(2, 76, 0)
   char *path = g_module_build_path (GOBJECT_INTROSPECTION_LIBDIR,
                                     name);
   g_free(name);
   name = path;
+#endif
 #endif
 
   /* Try to load the module. */

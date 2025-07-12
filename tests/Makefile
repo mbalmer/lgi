@@ -28,7 +28,7 @@ endif
 PKGS = gio-2.0 cairo cairo-gobject gobject-introspection-1.0 gmodule-2.0 libffi
 LUA = lua
 LUA_LIB = -llua
-PKG_CONFIG = pkg-config
+PKG_CONFIG ?= pkg-config
 
 ifndef CFLAGS
 ifndef COPTFLAGS
@@ -50,7 +50,7 @@ REGRESS_OBJS = regress.o
 
 .PHONY : all clean check
 
-all : Regress-1.0.typelib
+all : Regress-1.0.typelib test_c
 
 clean :
 	rm -f $(REGRESS) $(REGRESS_OBJS) Regress-1.0.gir Regress-1.0.typelib
@@ -70,10 +70,10 @@ $(REGRESS) : regress.o
 GIDATADIR = $(shell $(PKG_CONFIG) --variable=gidatadir gobject-introspection-1.0)/tests
 
 regress.o : $(GIDATADIR)/regress.c $(GIDATADIR)/regress.h $(DEPCHECK)
-	$(CC) $(ALL_CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
 
 test_c.o : test_c.c $(DEPCHECK)
-	$(CC) $(ALL_CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c -o $@ $<
 
 test_c : test_c.o
 	$(CC) $(LDFLAGS) -o $@ $< $(LIBS)

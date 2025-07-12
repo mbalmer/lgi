@@ -8,11 +8,11 @@ Licensed under
 [MIT-style](http://www.opensource.org/licenses/mit-license.php)
 license, see LICENSE file for full text.
 
-Home of the project is on [GitHub](http://github.com/pavouk/lgi).
+Home of the project is on [GitHub](http://github.com/lgi-devs/lgi).
 
 LGI is tested and compatible with standard Lua 5.1, Lua 5.2, Lua 5.3 and
 LuaJIT2.  Compatibility with other Lua implementations is not tested
-yet.
+yet. Lua 5.4 is only supported experimentally.
 
 If you need to support pre-gobject-introspection GTK (ancient GTK+ 2.x
 releases), use [Lua-Gnome](http://sourceforge.net/projects/lua-gnome/).
@@ -36,11 +36,34 @@ Alternatively, use make-based installation:
 
 Please note that on BSD-systems you may need to use 'gmake'.
 
+Building via Meson is also supported, with the same requirements, plus
+a Meson installation along with the Ninja build tool, in an empty build
+directory:
+
+    cd $(builddir)
+    meson $(lgi_srcroot) [--prefix=<prefix>] [--buildtype=<buildtype>] [--pkg-config-path=<pkgconfigpath>] [-Dlua-pc=...] [-Dlua-bin=...]
+    ninja
+	ninja test
+    [sudo] ninja install
+
+Building lgi with Visual Studio 2013 and later is also supported via
+Meson. It is recommended in this case that CMake is also installed to
+make finding Lua or LuaJIT easier, since Lua and LuaJIT support Visual
+Studio builds via batch files or manual compilation of sources. Ensure
+that `%INCLUDE%` includes the path to the Lua or LuaJIT headers, and
+`%LIB%` includes the path where the `lua5x.lib` from Lua or LuaJIT can be
+found, and ensure that `lua5x.dll` and `lua.exe` or `luajit.exe` can be
+found in `%PATH%` and run correctly. For building with LuaJIT, please do
+not pass in `-Dlua-pc=luajit`, but do pass in `-Dlua-bin=luajit` in the
+Meson command line so that the LuaJIT interpreter can be found correctly.
+
 ## Usage
 
-See examples in samples/ directory.  Documentation is available in
-doc/ directory in markdown format.  Process it with your favorite
-Markdown processor if you want to read it in HTML.
+See examples in `samples/` directory.  Documentation is available in
+`doc/` directory in markdown format.  Process it with your favorite
+Markdown processor if you want to read it in HTML. You can also check
+the [moonsteal/lua-gtk-examples repository](https://github.com/moonsteal/lua-gtk-examples), where you can find a variety
+of Lua Gtk examples.
 
 ## Credits
 
