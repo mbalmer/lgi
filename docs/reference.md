@@ -80,7 +80,7 @@ namespace, caller has to use the return value from `require` call.
 
 ### GObject.Closure
 
-- `GObject.Glosure(func)`
+- `GObject.Glosure(target)`
     - `target` is Lua function or anything Lua-callable.
 
   Creates new GClosure instance wrapping given Lua callable.  When
