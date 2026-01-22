@@ -17,7 +17,6 @@ local core = require 'lgi.core'
 local gi = core.gi
 local component = require 'lgi.component'
 local enum = require 'lgi.enum'
-local record = require 'lgi.record'
 
 local ffi = {}
 
