@@ -139,7 +139,7 @@ lgi_type_get_name (lua_State *L, GIBaseInfo *info)
     {
       if (g_base_info_get_type (i->data) != GI_INFO_TYPE_TYPE)
 	{
-	  lua_pushstring (L, ".");
+	  lua_pushliteral (L, ".");
 	  lua_pushstring (L, g_base_info_get_name (i->data));
 	  n += 2;
 	}
@@ -228,7 +228,7 @@ lgi_type_get_gtype (lua_State *L, int narg)
       {
 	GType gtype;
 	lgi_makeabs (L, narg);
-	lua_pushstring (L, "_gtype");
+	lua_pushliteral (L, "_gtype");
 	lua_rawget (L, narg);
 	gtype = lgi_type_get_gtype (L, -1);
 	lua_pop (L, 1);
