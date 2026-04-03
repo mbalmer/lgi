@@ -84,9 +84,9 @@ end
 
 local value_marshallers = {}
 for name, gtype in pairs(Type) do
-   name = core.downcase(name)
-   local get = Value['get_' .. name]
-   local set = Value['set_' .. name]
+   local n = core.downcase(name)
+   local get = Value['get_' .. n]
+   local set = Value['set_' .. n]
    if get and set then
       value_marshallers[gtype] =
       function(value, params, ...)
@@ -113,9 +113,9 @@ end
 -- Override marshallers for enums and bitmaps, marshal them as strings
 -- or sets of string flags.
 for name, gtype in pairs { ENUM = Type.ENUM, FLAGS = Type.FLAGS } do
-   name = core.downcase(name)
-   local get = Value._method['get_' .. name]
-   local set = Value._method['set_' .. name]
+   local n = core.downcase(name)
+   local get = Value._method['get_' .. n]
+   local set = Value._method['set_' .. n]
    value_marshallers[gtype] = function(value, params, ...)
       local rtype
       if select('#', ...) > 0 then
