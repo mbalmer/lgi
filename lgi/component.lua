@@ -64,9 +64,10 @@ function component.get_category(children, xform_value,
 
       -- Load all known indices.
       for en, idx in pairs(index) do
+    local e = en
 	 val = xvalue(children[idx])
-	 en = not xform_name_reverse and en or xform_name_reverse(en)
-	 if en then category[en] = val end
+	 e = not xform_name_reverse and e or xform_name_reverse(e)
+	 if e then category[e] = val end
       end
 
       -- Metatable is no longer needed, disconnect it.

@@ -143,7 +143,7 @@ info_push_transfer (lua_State *L, GITransfer transfer)
 #define H(n1, n2)				\
   else if (transfer == GI_TRANSFER_ ## n1)	\
     {						\
-      lua_pushstring (L, #n2);			\
+      lua_pushliteral (L, #n2);			\
       return 1;					\
     }
   H(NOTHING, none)
@@ -177,7 +177,7 @@ info_index (lua_State *L)
 	{
 #define H(n1, n2)				\
 	  case GI_INFO_TYPE_ ## n1:		\
-	    lua_pushstring (L, #n2);		\
+	    lua_pushliteral (L, #n2);		\
 	    return 1;
 
 	  H(FUNCTION, function)
@@ -435,11 +435,20 @@ info_index (lua_State *L)
       if (strcmp (prop, "direction") == 0)
 	{
 	  GIDirection dir = g_arg_info_get_direction (*info);
-	  if (dir == GI_DIRECTION_OUT)
-	    lua_pushstring (L, g_arg_info_is_caller_allocates (*info)
-			    ? "out-caller-alloc" : "out");
-	  else
-	    lua_pushstring (L, dir == GI_DIRECTION_IN ? "in" : "inout");
+          switch (dir) {
+          case GI_DIRECTION_IN:
+              lua_pushliteral(L, "in");
+              break;
+          case GI_DIRECTION_OUT:
+              if (g_arg_info_is_caller_allocates(*info))
+                  lua_pushliteral(L, "out-caller-alloc");
+              else
+                  lua_pushliteral(L, "out");
+              break;
+          case GI_DIRECTION_INOUT:
+              lua_pushliteral(L, "inout");
+              break;
+          }
 	  return 1;
 	}
       if (strcmp (prop, "transfer") == 0)
@@ -536,7 +545,7 @@ info_index (lua_State *L)
 	    {
 #define H(n1, n2)				\
 	      case GI_ARRAY_TYPE_ ## n1:	\
-		lua_pushstring (L, #n2);	\
+		lua_pushliteral (L, #n2);	\
 		return 1;
 
 	      H(C, c)

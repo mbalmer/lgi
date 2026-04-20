@@ -85,7 +85,6 @@ mapping between GLib types and Lua types is established.
   direction, following values are accepted for `gpointer` type:
     - Lua `string` instances
     - Instances of lgi classes, structs or unions
-    - Binary buffers (see below)
 
 ### 2.1. Calling functions and methods
 

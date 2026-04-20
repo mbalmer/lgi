@@ -339,9 +339,9 @@ end
 local function treemodel_prepare_values(model, values)
    local cols, vals = {}, {}
    for column, value in pairs(values) do
-      column = column - 1
-      cols[#cols + 1] = column
-      vals[#vals + 1] = GObject.Value(model:get_column_type(column), value)
+      local col = column - 1
+      cols[#cols + 1] = col
+      vals[#vals + 1] = GObject.Value(model:get_column_type(col), value)
    end
    return cols, vals
 end
